@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>香契 進銷存系統 2077</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC", sans-serif; margin: 0; background: #f6f7f9; color: #1f2937; }
+    header { background: #111827; color: #fff; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
+    main { max-width: 1120px; margin: 24px auto; padding: 0 20px; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+    input, button { padding: 8px 12px; border-radius: 6px; border: 1px solid #d1d5db; font-size: 14px; }
+    button { background: #111827; color: #fff; border: none; cursor: pointer; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+    pre { background: #f3f4f6; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>香契 進銷存系統 2077（架構骨架）</strong>
+    <span id="status">尚未連線</span>
+  </header>
+  <main>
+    <div class="card">
+      <h3>GAS API 連線設定（僅存於本機瀏覽器 localStorage）</h3>
+      <div class="row">
+        <input id="apiUrl" type="url" placeholder="貼上 GAS Web App URL" style="flex: 2; min-width: 280px;" />
+        <input id="apiToken" type="password" placeholder="輸入 API_TOKEN" style="flex: 1; min-width: 160px;" />
+        <button onclick="saveAndPing()">儲存並測試連線</button>
+      </div>
+      <pre id="output">等待測試連線...</pre>
+    </div>
+  </main>
+  <script>
+    const apiUrlEl = document.getElementById('apiUrl');
+    const apiTokenEl = document.getElementById('apiToken');
+    const outputEl = document.getElementById('output');
+    const statusEl = document.getElementById('status');
+
+    apiUrlEl.value = localStorage.getItem('erp_api_url') || '';
+    apiTokenEl.value = localStorage.getItem('erp_api_token') || '';
+
+    async function saveAndPing() {
+      const url = apiUrlEl.value.trim();
+      const token = apiTokenEl.value.trim();
+      localStorage.setItem('erp_api_url', url);
+      localStorage.setItem('erp_api_token', token);
+      if (!url) return alert('請輸入 GAS Web App URL');
+      outputEl.textContent = '連線測試中...';
+      try {
+        const res = await fetch(`${url}?action=ping&token=${encodeURIComponent(token)}`);
+        const data = await res.json();
+        outputEl.textContent = JSON.stringify(data, null, 2);
+        statusEl.textContent = data.ok ? '已連線' : '連線異常';
+      } catch (err) {
+        outputEl.textContent = '錯誤：' + err.message;
+        statusEl.textContent = '連線失敗';
+      }
+    }
+  </script>
+</body>
+</html>
